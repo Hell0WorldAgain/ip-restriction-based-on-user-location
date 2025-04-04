@@ -1,6 +1,6 @@
 <?php
 
-// In this example, we're going to show/hide page content based of user's country by getting user's IP address 
+// In this example, we're going to show/hide page content based of user's country by getting user's IP address, added restriction for second time visitors as well
 
 
 
@@ -20,55 +20,55 @@ $isp = json_decode($ipinfo);
 $country = $isp->country;
 $city = $isp->org;
 
-// Matching the ISP name with the given countries
-$country1 = strpos($country, 'US');
-$country2 = strpos($country, 'UK');
+// Restrict  countries and Cities
+$restrictedCountries = ['US', 'UK'];
+$restrictedCities = ['Bangalore', 'Hyderabad', 'Ahmedabad', 'Odisha'];
 
 
-// Checking if the ISP name contains the given cities
-$city1 = strpos($company, 'Bangalore');
-$city2 = strpos($company, 'Hyderabad');
-$city3 = strpos($company, 'Ahmedabad');
-$city4 = strpos($company, 'Odisha');
+// Check if the user is a second-time visitor
+$second_time_visitor = isset($_COOKIE['visited']) ? true : false;
 
+// Set a cookie to track the first visit (expires in 1 day)
+setcookie('visited', 'true', time() + (86400 * 365), "/"); 
 
-// Checking if the given countries are present in the ISP name
-if ($country1 !== False || $country2 !== False) {
-
-    // If the country is US or IN, hide the desired sections
+// Content restriction logic on second time visitors based on country and city
+if (array_filter($restrictedCities, fn($c) => strpos($city, $c) !== false)) {
+    // Hide registration for restricted companies
     ?>
     <style type="text/css">
-	 ?>
-     <style type="text/css">
-#id_of_the_section_you_want_to_hide{
-        display:none;
-			 } 
-</style>
- <?php
+            #registration {
+                display: none;
+            }
+    </style>
+    <?php
+} elseif (in_array($country, $restrictedCountries)) {
+    if ($second_time_visitor) {
+        // Hide both registration and home on the second visit
+        ?>
+        <style type="text/css">
+                #registration {
+                    display: none;
+                }
+        </style>
+        <?php
+    } else {
+        // Hide home for first-time visitors
+        ?>
+        <style type="text/css">
+                #home {
+                    display: none;
+                }
+        </style>
+        <?php
+    }
 }
-
-// Now, I want to hide content for few cities in India too, so I will check if the city name is present in the ISP name
-elseif ($city1 !== False || $city2 !== False || $city3 !== False || $city4 !== False ) {
-
-     // If the cities are same as mentioned, hide the desired sections
-     ?>
-     <style type="text/css">
-#id_of_the_section_you_want_to_hide{
-        display:none;
-			 } 
-</style>
- <?php
- }
-
- else{
-
-    // If the country is not US or IN, hide the other sections
-     ?>
-    <style type="text/css">
-   #id_of_the_section_you_want_to_hide{
-        display:none;
-			} 
-
-</style>
- <?php
- }
+else {
+        // Default: Hide registration for first-time visitors
+        ?>
+        <style type="text/css">
+                #registration {
+                    display: none;
+                }
+        </style>
+        <?php
+    }
